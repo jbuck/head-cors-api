@@ -1,3 +1,4 @@
+var DEFAULT_TIMEOUT = 3000;
 var parseURL = require("url").parse;
 var http = require('http');
 var https = require('https');
@@ -17,11 +18,16 @@ app.get('/tls/:host/:port', function(req, res) {
   if (isNaN(port) || port <= 0)
     return res.send(400, "bad port");
   
+  var timeout = setTimeout(function() {
+    res.send(502);
+    stream.destroy();
+  }, DEFAULT_TIMEOUT);
   var stream = tls.connect({
     host: req.param('host'),
     port: port,
     rejectUnauthorized: false
   }, function() {
+    clearTimeout(timeout);
     res.send({
       cert: stream.getPeerCertificate(),
       cipher: stream.getCipher(),
@@ -30,8 +36,15 @@ app.get('/tls/:host/:port', function(req, res) {
     stream.destroy();
   });
   stream.on('error', function() {
+    clearTimeout(timeout);
     return res.send(502);
   });
+});
+
+app.get('/_test/timeout', function(req, res) {
+  setTimeout(function() {
+    res.send(204);
+  }, DEFAULT_TIMEOUT + 1000);
 });
 
 app.get('/', function(req, res) {
@@ -59,7 +72,12 @@ app.get('/', function(req, res) {
     res.send(proxyRes.headers);
     proxyRes.destroy();
   });
+  proxyReq.setTimeout(DEFAULT_TIMEOUT);
   proxyReq.end();
+  proxyReq.on('timeout', function() {
+    proxyReq.abort();
+    return res.send(502);
+  });
   proxyReq.on('error', function(e) {
     return res.send(502);
   });
