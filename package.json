@@ -1,0 +1,15 @@
+{
+  "name": "head-cors-api",
+  "version": "0.0.0",
+  "description": "CORS API to proxy a HEAD request from any webpage.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "",
+  "author": "Atul Varma <varmaa@gmail.com>",
+  "license": "BSD",
+  "dependencies": {
+    "express": "~3.0.0rc4"
+  }
+}
