@@ -1,6 +1,7 @@
 var parseURL = require("url").parse;
 var http = require('http');
 var https = require('https');
+var tls = require('tls');
 var express = require("express");
 var app = express();
 var port = process.env['PORT'] || 3000;
@@ -8,6 +9,29 @@ var port = process.env['PORT'] || 3000;
 app.use(function(req, res, next) {
   res.set('Access-Control-Allow-Origin', '*');
   next();
+});
+
+app.get('/tls/:host/:port', function(req, res) {
+  var port = parseInt(req.param('port'));
+  
+  if (isNaN(port) || port <= 0)
+    return res.send(400, "bad port");
+  
+  var stream = tls.connect({
+    host: req.param('host'),
+    port: port,
+    rejectUnauthorized: false
+  }, function() {
+    res.send({
+      cert: stream.getPeerCertificate(),
+      cipher: stream.getCipher(),
+      authorized: stream.authorized
+    });
+    stream.destroy();
+  });
+  stream.on('error', function() {
+    return res.send(502);
+  });
 });
 
 app.get('/', function(req, res) {
