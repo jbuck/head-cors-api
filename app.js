@@ -6,6 +6,7 @@ var tls = require('tls');
 var express = require("express");
 var app = express();
 var port = process.env['PORT'] || 3000;
+var userAgent = process.env['USER_AGENT'] || "Mozilla/5.0 (iPad; U; CPU OS 3_2_1 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Mobile/7B405";
 
 app.use(function(req, res, next) {
   res.set('Access-Control-Allow-Origin', '*');
@@ -67,7 +68,10 @@ app.get('/', function(req, res) {
     method: 'HEAD',
     host: parts.host,
     port: parts.port || defaultPort,
-    path: parts.path
+    path: parts.path,
+    headers: {
+      'user-agent': userAgent
+    }
   }, function(proxyRes) {
     res.send(proxyRes.headers);
     proxyRes.destroy();
